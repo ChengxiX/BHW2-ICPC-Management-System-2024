@@ -4,7 +4,7 @@
 #include <string>
 #include <unordered_map>
 #include <vector>
-#pragma GCC optimize(3)
+//#pragma GCC optimize(3)
 
 const bool debug = true;
 
@@ -28,7 +28,7 @@ struct Team {
 std::vector<Team> Teams;
 
 struct cmp {
-    const bool operator() (const int a, const int b) const {
+    bool operator() (const int a, const int b) const {
         if (a == b) {
             return false;
         }
@@ -99,7 +99,8 @@ void Submit(const char problem_name, const std::string &team_name, const int sub
         if (Scores[team_id][problem_id].ac_time == -1 && !global_freeze) {
             Teams[team_id].passed++;
             Teams[team_id].penalty += time + Scores[team_id][problem_id].failed_b4_ac * 20;
-            RealSequence.erase(team_id);
+            auto it = RealSequence.find(team_id);
+            RealSequence.erase(it);
             RealSequence.insert(team_id);
         }
         Scores[team_id][problem_id].ac_time = time;
