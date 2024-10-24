@@ -28,7 +28,7 @@ struct Team {
 std::vector<Team> Teams;
 
 struct cmp {
-    bool operator() (const int a, const int b) {
+    const bool operator() (const int a, const int b) const {
         if (a == b) {
             return false;
         }
