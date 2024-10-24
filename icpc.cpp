@@ -142,13 +142,15 @@ void Submit(const char problem_name, const std::string &team_name, const int sub
     }
 }
 
-void Flush() {
+void Flush(bool print = true) {
     int i = 0;
     for (auto it = RealSequence.begin(); it != RealSequence.end(); it++, i++) {
         Teams[*it].seq = i;
         SeqToTeam[i] = *it;
     }
-    printf("[Info]Freeze scoreboard.\n");
+    if (print) {
+        printf("[Info]Flush scoreboard.\n");
+    }
 }
 
 void Scroll() {
@@ -157,7 +159,7 @@ void Scroll() {
         return;
     }
     printf("[Info]Scroll scoreboard.\n");
-    Flush();
+    Flush(false);
     for (int i = 0; i < Teams.size(); i++) {
         printf("%s %d %d %d", Teams[SeqToTeam[i]].name.c_str(), i+1, Teams[SeqToTeam[i]].passed, Teams[SeqToTeam[i]].penalty);
         for (int j = 0; j < problem_count; j++) {
@@ -191,22 +193,28 @@ void Scroll() {
         printf("\n");
     }
     bool exit = false;
+    bool break_twice = false;
     while (!exit) {
         exit = true;
         for (auto s_it = RealSequence.rbegin(); s_it != RealSequence.rend(); s_it++) {
             for (int j = 0; j < problem_count; j++) {
                 if (Scores[*s_it][j].freezed != 0) {
                     if (Scores[*s_it][j].ac_time != -1) {
-                        Scores[*s_it][j].freezed = 0;
-                        Scores[*s_it][j].failed_b4_freezed = 0;
-                        Teams[*s_it].passed++;
-                        Teams[*s_it].penalty += Scores[*s_it][j].ac_time + Scores[*s_it][j].failed_b4_ac * 20;
-                        RealSequence.erase(*s_it);
-                        auto res = RealSequence.insert(*s_it);
-                        auto it = res.first;
+                        auto t_id = *s_it;
+                        Scores[t_id][j].freezed = 0;
+                        Scores[t_id][j].failed_b4_freezed = 0;
+                        Teams[t_id].passed++;
+                        Teams[t_id].penalty += Scores[t_id][j].ac_time + Scores[t_id][j].failed_b4_ac * 20;
+                        int after_id = *(s_it.base());
+                        RealSequence.erase((++s_it).base());
+                        auto res = RealSequence.insert(t_id);
+                        auto it = res.first; // SUS!
                         it++;
-                        printf("%s %s %d %d\n", Teams[*res.first].name.c_str(), Teams[*it].name.c_str(), Teams[*res.first].passed, Teams[*res.first].penalty);
+                        if (*it != after_id){
+                            printf("%s %s %d %d\n", Teams[*res.first].name.c_str(), Teams[*it].name.c_str(), Teams[*res.first].passed, Teams[*res.first].penalty);
+                        }
                         exit = false;
+                        break_twice =true;
                         break;
                     }
                     else {
@@ -215,9 +223,13 @@ void Scroll() {
                     }
                 }
             }
+            if (break_twice) {
+                break_twice = false;
+                break;
+            }
         }
     }
-    Flush();
+    Flush(false);
     for (int i = 0; i < Teams.size(); i++) {
         printf("%s %d %d %d", Teams[SeqToTeam[i]].name.c_str(), i+1, Teams[SeqToTeam[i]].passed, Teams[SeqToTeam[i]].penalty);
         for (int j = 0; j < problem_count; j++) {
@@ -253,7 +265,7 @@ void QueryRanking(const std::string &team_name) {
     if (global_freeze) {
         printf("[Warning]Scoreboard is frozen. The ranking may be inaccurate until it were scrolled.\n");
     }
-    printf("%s NOW AT RANKING %d\n", team_name.c_str(), Teams[t_it->second].seq);
+    printf("%s NOW AT RANKING %d\n", team_name.c_str(), Teams[t_it->second].seq + 1);
 }
 
 void QuerySubmission(const std::string &team_name, const char problem_name, const int status) {
@@ -370,7 +382,7 @@ void QuerySubmission(const std::string &team_name, const char problem_name, cons
         printf("Cannot find any submission.\n");
     }
     else {
-        printf("%s %c %s %d", team_name.c_str(), char(latest_problem + 'A'),
+        printf("%s %c %s %d\n", team_name.c_str(), char(latest_problem + 'A'),
         latest_status == 0 ? "Accepted" : latest_status == 1 ? "Wrong_Answer" : latest_status == 2 ? "Time_Limit_Exceed" : "Runtime_Error", latest_time);
     }
 }
@@ -429,6 +441,7 @@ int main() {
         }
         else if (cmd == "QUERY_RANKING") {
             std::string team_name;
+            std::cin >> team_name;
             QueryRanking(team_name);
         }
         else if (cmd == "QUERY_SUBMISSION") {
@@ -459,11 +472,11 @@ int main() {
             QuerySubmission(team_name, problem, status);
         }
         else if (cmd == "END") {
+            printf("[Info]Competition ends.\n");
             return 0;
         }
         else if (debug) {
             std::cerr << cmd;
         }
     }
-    printf("[Info]Competition ends.\n");
 }
