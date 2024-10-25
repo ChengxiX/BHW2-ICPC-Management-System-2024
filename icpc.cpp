@@ -97,10 +97,9 @@ void Submit(const char problem_name, const std::string &team_name, const int sub
             Scores[team_id][problem_id].freezed++;
         }
         if (Scores[team_id][problem_id].ac_time == -1 && !global_freeze) {
+            RealSequence.erase(team_id);
             Teams[team_id].passed++;
             Teams[team_id].penalty += time + Scores[team_id][problem_id].failed_b4_ac * 20;
-            auto it = RealSequence.find(team_id);
-            RealSequence.erase(it);
             RealSequence.insert(team_id);
         }
         Scores[team_id][problem_id].ac_time = time;
@@ -204,10 +203,10 @@ void Scroll() {
                         auto t_id = *s_it;
                         Scores[t_id][j].freezed = 0;
                         Scores[t_id][j].failed_b4_freezed = 0;
+                        int after_id = *s_it.base();
+                        RealSequence.erase((++s_it).base());
                         Teams[t_id].passed++;
                         Teams[t_id].penalty += Scores[t_id][j].ac_time + Scores[t_id][j].failed_b4_ac * 20;
-                        int after_id = *(s_it.base());
-                        RealSequence.erase((++s_it).base());
                         auto res = RealSequence.insert(t_id);
                         auto it = res.first; // SUS!
                         it++;
