@@ -12,7 +12,9 @@ struct Problem {
     int freezed = 0;
     int failed_b4_ac = 0;
     int failed_b4_freezed = 0;
+    int last_submit = -1;
     int ac_time = -1;
+    int first_ac_time = -1;
     int wa_time = -1;
     int tle_time = -1;
     int re_time = -1;
@@ -102,7 +104,11 @@ void Submit(const char problem_name, const std::string &team_name, const int sub
             Teams[team_id].penalty += time + Scores[team_id][problem_id].failed_b4_ac * 20;
             RealSequence.insert(team_id);
         }
+        if (Scores[team_id][problem_id].first_ac_time == -1) {
+            Scores[team_id][problem_id].first_ac_time = time;
+        }
         Scores[team_id][problem_id].ac_time = time;
+        Scores[team_id][problem_id].last_submit = 0;
     }
     else if (submit_status == 1) {
         if (global_freeze && !(Scores[team_id][problem_id].freezed == 0 && Scores[team_id][problem_id].ac_time != -1)) {
@@ -115,6 +121,7 @@ void Submit(const char problem_name, const std::string &team_name, const int sub
             }
         }
         Scores[team_id][problem_id].wa_time = time;
+        Scores[team_id][problem_id].last_submit = 1;
     }
     else if (submit_status == 2) {
         if (global_freeze && !(Scores[team_id][problem_id].freezed == 0 && Scores[team_id][problem_id].ac_time != -1)) {
@@ -127,6 +134,7 @@ void Submit(const char problem_name, const std::string &team_name, const int sub
             }
         }
         Scores[team_id][problem_id].tle_time = time;
+        Scores[team_id][problem_id].last_submit = 2;
     }
     else if (submit_status == 3) {
         if (global_freeze && !(Scores[team_id][problem_id].freezed == 0 && Scores[team_id][problem_id].ac_time != -1)) {
@@ -139,6 +147,7 @@ void Submit(const char problem_name, const std::string &team_name, const int sub
             }
         }
         Scores[team_id][problem_id].re_time = time;
+        Scores[team_id][problem_id].last_submit = 3;
     }
 }
 
@@ -206,7 +215,7 @@ void Scroll() {
                         int after_id = *s_it.base();
                         RealSequence.erase((++s_it).base());
                         Teams[t_id].passed++;
-                        Teams[t_id].penalty += Scores[t_id][j].ac_time + Scores[t_id][j].failed_b4_ac * 20;
+                        Teams[t_id].penalty += Scores[t_id][j].first_ac_time + Scores[t_id][j].failed_b4_ac * 20;
                         auto res = RealSequence.insert(t_id);
                         auto it = res.first; // SUS!
                         it++;
@@ -283,22 +292,22 @@ void QuerySubmission(const std::string &team_name, const char problem_name, cons
     if (question_id == -1) {
         if (status == -1) {
             for (int i = 0; i < problem_count; i++) {
-                if (latest_time < score[i].ac_time) {
+                if (score[i].last_submit == 0 && latest_time < score[i].ac_time) {
                     latest_time = score[i].ac_time;
                     latest_problem = i;
                     latest_status = 0;
                 }
-                if (latest_time < score[i].wa_time) {
+                if (score[i].last_submit == 1 && latest_time < score[i].wa_time) {
                     latest_time = score[i].wa_time;
                     latest_problem = i;
                     latest_status = 1;
                 }
-                if (latest_time < score[i].tle_time) {
+                if (score[i].last_submit == 2 && latest_time < score[i].tle_time) {
                     latest_time = score[i].tle_time;
                     latest_problem = i;
                     latest_status = 2;
                 }
-                if (latest_time < score[i].re_time) {
+                if (score[i].last_submit == 3 && latest_time < score[i].re_time) {
                     latest_time = score[i].re_time;
                     latest_problem = i;
                     latest_status = 3;
@@ -340,19 +349,19 @@ void QuerySubmission(const std::string &team_name, const char problem_name, cons
     }
     else {
         if (status == -1) {
-            if (latest_time < score[question_id].ac_time) {
+            if (score[question_id].last_submit == 0) {
                 latest_time = score[question_id].ac_time;
                 latest_status = 0;
             }
-            if (latest_time < score[question_id].wa_time) {
+            else if (score[question_id].last_submit == 1) {
                 latest_time = score[question_id].wa_time;
                 latest_status = 1;
             }
-            if (latest_time < score[question_id].tle_time) {
+            else if (score[question_id].last_submit == 2) {
                 latest_time = score[question_id].tle_time;
                 latest_status = 2;
             }
-            if (latest_time < score[question_id].re_time) {
+            else if (score[question_id].last_submit == 3) {
                 latest_time = score[question_id].re_time;
                 latest_status = 3;
             }
