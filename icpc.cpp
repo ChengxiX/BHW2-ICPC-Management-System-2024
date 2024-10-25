@@ -186,7 +186,7 @@ void Scroll() {
                     printf(" 0/%d", Scores[SeqToTeam[i]][j].freezed);
                 }
                 else {
-                    printf(" -%d/%d", Scores[SeqToTeam[i]][j].failed_b4_freezed, Scores[SeqToTeam[i]][j].failed_b4_freezed);
+                    printf(" -%d/%d", Scores[SeqToTeam[i]][j].failed_b4_freezed, Scores[SeqToTeam[i]][j].freezed);
                 }
             }
         }
@@ -219,7 +219,7 @@ void Scroll() {
                     }
                     else {
                         Scores[*s_it][j].freezed = 0;
-                        Scores[*s_it][j].failed_b4_freezed = 0;
+                        Scores[*s_it][j].failed_b4_freezed = Scores[*s_it][j].failed_b4_ac;
                     }
                 }
             }
