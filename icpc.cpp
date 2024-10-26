@@ -25,6 +25,11 @@ struct Team {
     int seq = -1;
     int passed = 0;
     int penalty = 0;
+    int latest_submit = -1;
+    int latest_ac = -1;
+    int latest_wa = -1;
+    int latest_tle = -1;
+    int latest_re = -1;
 };
 
 std::vector<Team> Teams;
@@ -94,6 +99,7 @@ inline int QuestionNameToIndex(const char problem_name) {
 void Submit(const char problem_name, const std::string &team_name, const int submit_status, const int time) {
     int team_id = NameToTeam[team_name];
     int problem_id = QuestionNameToIndex(problem_name);
+    Teams[team_id].latest_submit = problem_id;
     if (submit_status == 0) {
         if (global_freeze && !(Scores[team_id][problem_id].freezed == 0 && Scores[team_id][problem_id].ac_time != -1)) {
             Scores[team_id][problem_id].freezed++;
@@ -109,6 +115,7 @@ void Submit(const char problem_name, const std::string &team_name, const int sub
         }
         Scores[team_id][problem_id].ac_time = time;
         Scores[team_id][problem_id].last_submit = 0;
+        Teams[team_id].latest_ac = problem_id;
     }
     else if (submit_status == 1) {
         if (global_freeze && !(Scores[team_id][problem_id].freezed == 0 && Scores[team_id][problem_id].ac_time != -1)) {
@@ -122,6 +129,7 @@ void Submit(const char problem_name, const std::string &team_name, const int sub
         }
         Scores[team_id][problem_id].wa_time = time;
         Scores[team_id][problem_id].last_submit = 1;
+        Teams[team_id].latest_wa = problem_id;
     }
     else if (submit_status == 2) {
         if (global_freeze && !(Scores[team_id][problem_id].freezed == 0 && Scores[team_id][problem_id].ac_time != -1)) {
@@ -135,6 +143,7 @@ void Submit(const char problem_name, const std::string &team_name, const int sub
         }
         Scores[team_id][problem_id].tle_time = time;
         Scores[team_id][problem_id].last_submit = 2;
+        Teams[team_id].latest_tle = problem_id;
     }
     else if (submit_status == 3) {
         if (global_freeze && !(Scores[team_id][problem_id].freezed == 0 && Scores[team_id][problem_id].ac_time != -1)) {
@@ -148,6 +157,7 @@ void Submit(const char problem_name, const std::string &team_name, const int sub
         }
         Scores[team_id][problem_id].re_time = time;
         Scores[team_id][problem_id].last_submit = 3;
+        Teams[team_id].latest_re = problem_id;
     }
 }
 
@@ -291,59 +301,50 @@ void QuerySubmission(const std::string &team_name, const char problem_name, cons
     int latest_status = status;
     if (question_id == -1) {
         if (status == -1) {
-            for (int i = 0; i < problem_count; i++) {
-                if (score[i].last_submit == 0 && latest_time < score[i].ac_time) {
-                    latest_time = score[i].ac_time;
-                    latest_problem = i;
-                    latest_status = 0;
-                }
-                if (score[i].last_submit == 1 && latest_time < score[i].wa_time) {
-                    latest_time = score[i].wa_time;
-                    latest_problem = i;
-                    latest_status = 1;
-                }
-                if (score[i].last_submit == 2 && latest_time < score[i].tle_time) {
-                    latest_time = score[i].tle_time;
-                    latest_problem = i;
-                    latest_status = 2;
-                }
-                if (score[i].last_submit == 3 && latest_time < score[i].re_time) {
-                    latest_time = score[i].re_time;
-                    latest_problem = i;
-                    latest_status = 3;
-                }
+            int i = Teams[t_it->second].latest_submit;
+            if (score[i].last_submit == 0) {
+                latest_time = score[i].ac_time;
+                latest_problem = i;
+                latest_status = 0;
+            }
+            if (score[i].last_submit == 1) {
+                latest_time = score[i].wa_time;
+                latest_problem = i;
+                latest_status = 1;
+            }
+            if (score[i].last_submit == 2) {
+                latest_time = score[i].tle_time;
+                latest_problem = i;
+                latest_status = 2;
+            }
+            if (score[i].last_submit == 3) {
+                latest_time = score[i].re_time;
+                latest_problem = i;
+                latest_status = 3;
             }
         }
         else if (status == 0) {
-            for (int i = 0; i < problem_count; i++) {
-                if (latest_time < score[i].ac_time) {
-                    latest_time = score[i].ac_time;
-                    latest_problem = i;
-                }
+            if (Teams[t_it->second].latest_ac != -1) {
+                latest_time = score[Teams[t_it->second].latest_ac].ac_time;
+                latest_problem = Teams[t_it->second].latest_ac;
             }
         }
         else if (status == 1) {
-            for (int i = 0; i < problem_count; i++) {
-                if (latest_time < score[i].wa_time) {
-                    latest_time = score[i].wa_time;
-                    latest_problem = i;
-                }
+            if (Teams[t_it->second].latest_wa != -1) {
+                latest_time = score[Teams[t_it->second].latest_wa].wa_time;
+                latest_problem = Teams[t_it->second].latest_wa;
             }
         }
         else if (status == 2) {
-            for (int i = 0; i < problem_count; i++) {
-                if (latest_time < score[i].tle_time) {
-                    latest_time = score[i].tle_time;
-                    latest_problem = i;
-                }
+            if (Teams[t_it->second].latest_tle != -1) {
+                latest_time = score[Teams[t_it->second].latest_tle].tle_time;
+                latest_problem = Teams[t_it->second].latest_tle;
             }
         }
         else if (status == 3) {
-            for (int i = 0; i < problem_count; i++) {
-                if (latest_time < score[i].re_time) {
-                    latest_time = score[i].re_time;
-                    latest_problem = i;
-                }
+            if (Teams[t_it->second].latest_re != -1) {
+                latest_time = score[Teams[t_it->second].latest_re].re_time;
+                latest_problem = Teams[t_it->second].latest_re;
             }
         }
     }
