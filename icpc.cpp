@@ -241,7 +241,6 @@ void Scroll() {
                     else {
                         Scores[*s_it][j].freezed = 0;
                         Scores[*s_it][j].failed_b4_freezed = Scores[*s_it][j].failed_b4_ac;
-                        break;
                     }
                 }
             }
