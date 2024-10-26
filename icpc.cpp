@@ -4,7 +4,7 @@
 #include <string>
 #include <unordered_map>
 #include <vector>
-//#pragma GCC optimize(3)
+#pragma GCC optimize(3)
 
 const bool debug = true;
 
@@ -100,64 +100,66 @@ void Submit(const char problem_name, const std::string &team_name, const int sub
     int team_id = NameToTeam[team_name];
     int problem_id = QuestionNameToIndex(problem_name);
     Teams[team_id].latest_submit = problem_id;
-    if (submit_status == 0) {
-        if (global_freeze && !(Scores[team_id][problem_id].freezed == 0 && Scores[team_id][problem_id].ac_time != -1)) {
-            Scores[team_id][problem_id].freezed++;
-        }
-        if (Scores[team_id][problem_id].ac_time == -1 && !global_freeze) {
-            RealSequence.erase(team_id);
-            Teams[team_id].passed++;
-            Teams[team_id].penalty += time + Scores[team_id][problem_id].failed_b4_ac * 20;
-            RealSequence.insert(team_id);
-        }
-        if (Scores[team_id][problem_id].first_ac_time == -1) {
-            Scores[team_id][problem_id].first_ac_time = time;
-        }
-        Scores[team_id][problem_id].ac_time = time;
-        Scores[team_id][problem_id].last_submit = 0;
-        Teams[team_id].latest_ac = problem_id;
-    }
-    else if (submit_status == 1) {
-        if (global_freeze && !(Scores[team_id][problem_id].freezed == 0 && Scores[team_id][problem_id].ac_time != -1)) {
-            Scores[team_id][problem_id].freezed++;
-        }
-        if (Scores[team_id][problem_id].ac_time == -1) {
-            Scores[team_id][problem_id].failed_b4_ac++;
-            if (!global_freeze) {
-                Scores[team_id][problem_id].failed_b4_freezed++;
+    switch (submit_status) {
+        case 0:
+            if (global_freeze && !(Scores[team_id][problem_id].freezed == 0 && Scores[team_id][problem_id].ac_time != -1)) {
+                Scores[team_id][problem_id].freezed++;
             }
-        }
-        Scores[team_id][problem_id].wa_time = time;
-        Scores[team_id][problem_id].last_submit = 1;
-        Teams[team_id].latest_wa = problem_id;
-    }
-    else if (submit_status == 2) {
-        if (global_freeze && !(Scores[team_id][problem_id].freezed == 0 && Scores[team_id][problem_id].ac_time != -1)) {
-            Scores[team_id][problem_id].freezed++;
-        }
-        if (Scores[team_id][problem_id].ac_time == -1) {
-            Scores[team_id][problem_id].failed_b4_ac++;
-            if (!global_freeze) {
-                Scores[team_id][problem_id].failed_b4_freezed++;
+            if (Scores[team_id][problem_id].ac_time == -1 && !global_freeze) {
+                RealSequence.erase(team_id);
+                Teams[team_id].passed++;
+                Teams[team_id].penalty += time + Scores[team_id][problem_id].failed_b4_ac * 20;
+                RealSequence.insert(team_id);
             }
-        }
-        Scores[team_id][problem_id].tle_time = time;
-        Scores[team_id][problem_id].last_submit = 2;
-        Teams[team_id].latest_tle = problem_id;
-    }
-    else if (submit_status == 3) {
-        if (global_freeze && !(Scores[team_id][problem_id].freezed == 0 && Scores[team_id][problem_id].ac_time != -1)) {
-            Scores[team_id][problem_id].freezed++;
-        }
-        if (Scores[team_id][problem_id].ac_time == -1) {
-            Scores[team_id][problem_id].failed_b4_ac++;
-            if (!global_freeze) {
-                Scores[team_id][problem_id].failed_b4_freezed++;
+            if (Scores[team_id][problem_id].first_ac_time == -1) {
+                Scores[team_id][problem_id].first_ac_time = time;
             }
-        }
-        Scores[team_id][problem_id].re_time = time;
-        Scores[team_id][problem_id].last_submit = 3;
-        Teams[team_id].latest_re = problem_id;
+            Scores[team_id][problem_id].ac_time = time;
+            Scores[team_id][problem_id].last_submit = 0;
+            Teams[team_id].latest_ac = problem_id;
+            break;
+        case 1:
+            if (global_freeze && !(Scores[team_id][problem_id].freezed == 0 && Scores[team_id][problem_id].ac_time != -1)) {
+                Scores[team_id][problem_id].freezed++;
+            }
+            if (Scores[team_id][problem_id].ac_time == -1) {
+                Scores[team_id][problem_id].failed_b4_ac++;
+                if (!global_freeze) {
+                    Scores[team_id][problem_id].failed_b4_freezed++;
+                }
+            }
+            Scores[team_id][problem_id].wa_time = time;
+            Scores[team_id][problem_id].last_submit = 1;
+            Teams[team_id].latest_wa = problem_id;
+            break;
+        case 2:
+            if (global_freeze && !(Scores[team_id][problem_id].freezed == 0 && Scores[team_id][problem_id].ac_time != -1)) {
+                Scores[team_id][problem_id].freezed++;
+            }
+            if (Scores[team_id][problem_id].ac_time == -1) {
+                Scores[team_id][problem_id].failed_b4_ac++;
+                if (!global_freeze) {
+                    Scores[team_id][problem_id].failed_b4_freezed++;
+                }
+            }
+            Scores[team_id][problem_id].tle_time = time;
+            Scores[team_id][problem_id].last_submit = 2;
+            Teams[team_id].latest_tle = problem_id;
+            break;
+        case 3:
+            if (global_freeze && !(Scores[team_id][problem_id].freezed == 0 && Scores[team_id][problem_id].ac_time != -1)) {
+                Scores[team_id][problem_id].freezed++;
+            }
+            if (Scores[team_id][problem_id].ac_time == -1) {
+                Scores[team_id][problem_id].failed_b4_ac++;
+                if (!global_freeze) {
+                    Scores[team_id][problem_id].failed_b4_freezed++;
+                }
+            }
+            Scores[team_id][problem_id].re_time = time;
+            Scores[team_id][problem_id].last_submit = 3;
+            Teams[team_id].latest_re = problem_id;
+            break;
     }
 }
 
@@ -300,92 +302,99 @@ void QuerySubmission(const std::string &team_name, const char problem_name, cons
     int latest_problem = question_id;
     int latest_status = status;
     if (question_id == -1) {
-        if (status == -1) {
-            int i = Teams[t_it->second].latest_submit;
-            if (score[i].last_submit == 0) {
-                latest_time = score[i].ac_time;
-                latest_problem = i;
-                latest_status = 0;
-            }
-            if (score[i].last_submit == 1) {
-                latest_time = score[i].wa_time;
-                latest_problem = i;
-                latest_status = 1;
-            }
-            if (score[i].last_submit == 2) {
-                latest_time = score[i].tle_time;
-                latest_problem = i;
-                latest_status = 2;
-            }
-            if (score[i].last_submit == 3) {
-                latest_time = score[i].re_time;
-                latest_problem = i;
-                latest_status = 3;
-            }
-        }
-        else if (status == 0) {
-            if (Teams[t_it->second].latest_ac != -1) {
-                latest_time = score[Teams[t_it->second].latest_ac].ac_time;
-                latest_problem = Teams[t_it->second].latest_ac;
-            }
-        }
-        else if (status == 1) {
-            if (Teams[t_it->second].latest_wa != -1) {
-                latest_time = score[Teams[t_it->second].latest_wa].wa_time;
-                latest_problem = Teams[t_it->second].latest_wa;
-            }
-        }
-        else if (status == 2) {
-            if (Teams[t_it->second].latest_tle != -1) {
-                latest_time = score[Teams[t_it->second].latest_tle].tle_time;
-                latest_problem = Teams[t_it->second].latest_tle;
-            }
-        }
-        else if (status == 3) {
-            if (Teams[t_it->second].latest_re != -1) {
-                latest_time = score[Teams[t_it->second].latest_re].re_time;
-                latest_problem = Teams[t_it->second].latest_re;
-            }
+        switch (status) {
+            case -1:
+                switch (score[Teams[t_it->second].latest_submit].last_submit) {
+                    case 0:
+                        latest_time = score[Teams[t_it->second].latest_submit].ac_time;
+                        latest_problem = Teams[t_it->second].latest_submit;
+                        latest_status = 0;
+                        break;
+                    case 1:
+                        latest_time = score[Teams[t_it->second].latest_submit].wa_time;
+                        latest_problem = Teams[t_it->second].latest_submit;
+                        latest_status = 1;
+                        break;
+                    case 2:
+                        latest_time = score[Teams[t_it->second].latest_submit].tle_time;
+                        latest_problem = Teams[t_it->second].latest_submit;
+                        latest_status = 2;
+                        break;
+                    case 3:
+                        latest_time = score[Teams[t_it->second].latest_submit].re_time;
+                        latest_problem = Teams[t_it->second].latest_submit;
+                        latest_status = 3;
+                        break;
+                }
+                break;
+            case 0:
+                if (Teams[t_it->second].latest_ac != -1) {
+                    latest_time = score[Teams[t_it->second].latest_ac].ac_time;
+                    latest_problem = Teams[t_it->second].latest_ac;
+                }
+                break;
+            case 1:
+                if (Teams[t_it->second].latest_wa != -1) {
+                    latest_time = score[Teams[t_it->second].latest_wa].wa_time;
+                    latest_problem = Teams[t_it->second].latest_wa;
+                }
+                break;
+            case 2:
+                if (Teams[t_it->second].latest_tle != -1) {
+                    latest_time = score[Teams[t_it->second].latest_tle].tle_time;
+                    latest_problem = Teams[t_it->second].latest_tle;
+                }
+                break;
+            case 3:
+                if (Teams[t_it->second].latest_re != -1) {
+                    latest_time = score[Teams[t_it->second].latest_re].re_time;
+                    latest_problem = Teams[t_it->second].latest_re;
+                }
+                break;
         }
     }
     else {
-        if (status == -1) {
-            if (score[question_id].last_submit == 0) {
-                latest_time = score[question_id].ac_time;
-                latest_status = 0;
-            }
-            else if (score[question_id].last_submit == 1) {
-                latest_time = score[question_id].wa_time;
-                latest_status = 1;
-            }
-            else if (score[question_id].last_submit == 2) {
-                latest_time = score[question_id].tle_time;
-                latest_status = 2;
-            }
-            else if (score[question_id].last_submit == 3) {
-                latest_time = score[question_id].re_time;
-                latest_status = 3;
-            }
-        }
-        else if (status == 0) {
-            if (latest_time < score[question_id].ac_time) {
-                latest_time = score[question_id].ac_time;
-            }
-        }
-        else if (status == 1) {
-            if (latest_time < score[question_id].wa_time) {
-                latest_time = score[question_id].wa_time;
-            }
-        }
-        else if (status == 2) {
-            if (latest_time < score[question_id].tle_time) {
-                latest_time = score[question_id].tle_time;
-            }
-        }
-        else if (status == 3) {
-            if (latest_time < score[question_id].re_time) {
-                latest_time = score[question_id].re_time;
-            }
+        switch (status) {
+            case -1:
+                switch (score[question_id].last_submit) {
+                    case 0:
+                        latest_time = score[question_id].ac_time;
+                        latest_status = 0;
+                        break;
+                    case 1:
+                        latest_time = score[question_id].wa_time;
+                        latest_status = 1;
+                        break;
+                    case 2:
+                        latest_time = score[question_id].tle_time;
+                        latest_status = 2;
+                        break;
+                    case 3:
+                        latest_time = score[question_id].re_time;
+                        latest_status = 3;
+                        break;
+                }
+                break;
+            case 0:
+                if (latest_time < score[question_id].ac_time) {
+                    latest_time = score[question_id].ac_time;
+                }
+                break;
+            case 1:
+                if (latest_time < score[question_id].wa_time) {
+                    latest_time = score[question_id].wa_time;
+                }
+                break;
+            case 2:
+                if (latest_time < score[question_id].tle_time) {
+                    latest_time = score[question_id].tle_time;
+                }
+                break;
+            case 3:
+                if (latest_time < score[question_id].re_time) {
+                    latest_time = score[question_id].re_time;
+                }
+                break;
         }
     }
     if (latest_time == 0) {
@@ -462,22 +471,24 @@ int main() {
                 problem = 'A' - 1;
             }
             int status;
-            if (submit_status[7]=='A') {
-                if (submit_status[8]=='L') {
-                    status = -1;
-                }
-                else {
-                    status = 0;
-                }
-            }
-            else if (submit_status[7]=='W') {
-                status = 1;
-            }
-            else if (submit_status[7]=='T') {
-                status = 2;
-            }
-            else {
-                status = 3;
+            switch (submit_status[7]) {
+                case 'A':
+                    if (submit_status[8]=='L') {
+                        status = -1;
+                    }
+                    else {
+                        status = 0;
+                    }
+                    break;
+                case 'W':
+                    status = 1;
+                    break;
+                case 'T':
+                    status = 2;
+                    break;
+                default:
+                    status = 3;
+                    break;
             }
             QuerySubmission(team_name, problem, status);
         }
