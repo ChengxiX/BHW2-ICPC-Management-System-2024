@@ -34,6 +34,8 @@ struct Team {
 };
 
 std::vector<Team> Teams;
+int problem_count;
+std::vector<std::vector<Problem>> Scores;
 
 struct cmp {
     bool operator() (const int a, const int b) const {
@@ -41,7 +43,28 @@ struct cmp {
             return false;
         }
         if (Teams[a].passed == Teams[b].passed) {
+            if (Teams[a].passed == 0) {
+                return Teams[a].name.compare(Teams[b].name) < 0;
+            }
             if (Teams[a].penalty == Teams[b].penalty) {
+                std::vector<int> a_time, b_time;
+                a_time.reserve(Teams[a].passed);
+                b_time.reserve(Teams[b].passed);
+                for (int i = 0; i < problem_count; i++) {
+                    if (Scores[a][i].first_ac_time != -1) {
+                        a_time.push_back(Scores[a][i].first_ac_time);
+                    }
+                    if (Scores[b][i].first_ac_time != -1) {
+                        b_time.push_back(Scores[b][i].first_ac_time);
+                    }
+                }
+                std::sort(a_time.begin(), a_time.end());
+                std::sort(b_time.begin(), b_time.end());
+                for (int i = Teams[a].passed-1; i >= 0; i--) {
+                    if (a_time[i] != b_time[i]) {
+                        return a_time[i] < b_time[i];
+                    }
+                }
                 return Teams[a].name.compare(Teams[b].name) < 0;
             }
             return Teams[a].penalty < Teams[b].penalty;
@@ -51,11 +74,9 @@ struct cmp {
 };
 
 std::unordered_map<std::string, int> NameToTeam;
-std::vector<std::vector<Problem>> Scores;
 std::vector<int> SeqToTeam;
 bool started = false;
 bool global_freeze = false;
-int problem_count;
 int end_time;
 
 void AddTeam(const std::string &team_name) {
@@ -249,24 +270,26 @@ void Scroll() {
             }
         }
     }
-    Flush(false);
-    for (int i = 0; i < Teams.size(); i++) {
-        printf("%s %d %d %d", Teams[SeqToTeam[i]].name.c_str(), i+1, Teams[SeqToTeam[i]].passed, Teams[SeqToTeam[i]].penalty);
+    int i = 0;
+    for (auto it = RealSequence.begin(); i < Teams.size(); i++, it++) {
+        Teams[*it].seq = i;
+        SeqToTeam[i] = *it;
+        printf("%s %d %d %d", Teams[*it].name.c_str(), i+1, Teams[*it].passed, Teams[SeqToTeam[i]].penalty);
         for (int j = 0; j < problem_count; j++) {
-            if (Scores[SeqToTeam[i]][j].ac_time != -1) {
-                if (Scores[SeqToTeam[i]][j].failed_b4_ac == 0) {
+            if (Scores[*it][j].ac_time != -1) {
+                if (Scores[*it][j].failed_b4_ac == 0) {
                     printf(" +");
                 }
                 else {
-                    printf(" +%d", Scores[SeqToTeam[i]][j].failed_b4_ac);
+                    printf(" +%d", Scores[*it][j].failed_b4_ac);
                 }
             }
             else {
-                if (Scores[SeqToTeam[i]][j].failed_b4_ac == 0) {
+                if (Scores[*it][j].failed_b4_ac == 0) {
                     printf(" .");
                 }
                 else {
-                    printf(" -%d", Scores[SeqToTeam[i]][j].failed_b4_ac);
+                    printf(" -%d", Scores[*it][j].failed_b4_ac);
                 }
             }
         }
