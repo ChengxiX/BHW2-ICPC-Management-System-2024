@@ -51,10 +51,10 @@ struct cmp {
                 a_time.reserve(Teams[a].passed);
                 b_time.reserve(Teams[b].passed);
                 for (int i = 0; i < problem_count; i++) {
-                    if (Scores[a][i].first_ac_time != -1) {
+                    if (Scores[a][i].first_ac_time != -1 && Scores[a][i].freezed == 0) {
                         a_time.push_back(Scores[a][i].first_ac_time);
                     }
-                    if (Scores[b][i].first_ac_time != -1) {
+                    if (Scores[b][i].first_ac_time != -1 && Scores[b][i].freezed == 0) {
                         b_time.push_back(Scores[b][i].first_ac_time);
                     }
                 }
@@ -251,7 +251,6 @@ void Scroll() {
                             after_id = *s_it.base();
                         }
                         auto r = RealSequence.erase((++s_it).base());
-
                         Teams[t_id].passed++;
                         Teams[t_id].penalty += Scores[t_id][j].first_ac_time + Scores[t_id][j].failed_b4_ac * 20;
                         auto replaced = RealSequence.upper_bound(t_id);
