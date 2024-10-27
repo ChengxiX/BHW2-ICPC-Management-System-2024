@@ -252,21 +252,16 @@ void Scroll() {
     bool break_twice = false;
     while (!exit) {
         exit = true;
-        for (auto s_it = RealSequence.rbegin(); s_it != RealSequence.rend(); s_it++) {
+        int last_id = -1;
+        for (auto s_it = RealSequence.end(); s_it != RealSequence.begin();) {
+            s_it--;
             int t_id = *s_it;
             for (int j = 0; j < problem_count; j++) {
                 if (Scores[t_id][j].freezed != 0) {
                     if (Scores[t_id][j].ac_time != -1) {
                         Scores[t_id][j].freezed = 0;
                         Scores[t_id][j].failed_b4_freezed = 0;
-                        int after_id;
-                        if (s_it.base()==RealSequence.end()) {
-                            after_id = -1;
-                        }
-                        else {
-                            after_id = *s_it.base();
-                        }
-                        auto r = RealSequence.erase((++s_it).base());
+                        auto r = RealSequence.erase(s_it);
                         Teams[t_id].passed++;
                         Teams[t_id].penalty += Scores[t_id][j].first_ac_time + Scores[t_id][j].failed_b4_ac * 20;
                         auto replaced = RealSequence.upper_bound(t_id);
@@ -278,7 +273,7 @@ void Scroll() {
                             replaced_id = *replaced;
                         }
                         auto res = RealSequence.insert(replaced, t_id);
-                        if (replaced_id != after_id) { 
+                        if (replaced_id != last_id) { 
                             printf("%s %s %d %d\n", Teams[t_id].name.c_str(), Teams[replaced_id].name.c_str(), Teams[t_id].passed, Teams[t_id].penalty);
                         }
                         exit = false;
@@ -295,6 +290,7 @@ void Scroll() {
                 break_twice = false;
                 break;
             }
+            last_id = t_id;
         }
     }
     int i = 0;
