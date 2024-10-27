@@ -459,93 +459,95 @@ void QuerySubmission(const std::string &team_name, const char problem_name, cons
 int main() {
     std::ios::sync_with_stdio(false);
     std::string cmd;
+    std::string none;
+    std::string team_name;
+    int duration_time, count;
     while (std::cin >> cmd) {
-        if (cmd == "ADDTEAM") {
-            std::string team_name;
-            std::cin >> team_name;
-            AddTeam(team_name);
-        }
-        else if (cmd == "START") {
-            std::string none;
-            int duration_time, count;
-            std::cin >> none >> duration_time >> none >> count;
-            Start(duration_time, count);
-        }
-        else if (cmd == "SUBMIT") {
-            char problem_name;
-            std::string none, team_name, submit_status;
-            int time;
-            std::cin >> problem_name >> none >> team_name >> none >> submit_status >> none >> time;
-            int status;
-            if (submit_status[0]=='A') {
-                status = 0;
-            }
-            else if (submit_status[0]=='W') {
-                status = 1;
-            }
-            else if (submit_status[0]=='T') {
-                status = 2;
-            }
-            else {
-                status = 3;
-            }
-            Submit(problem_name, team_name, status, time);
-        }
-        else if (cmd == "FLUSH") {
-            Flush();
-        }
-        else if (cmd == "FREEZE") {
-            if (global_freeze) {
-                printf("[Error]Freeze failed: scoreboard has been frozen.\n");
-            }
-            else {
-                global_freeze = true;
-                printf("[Info]Freeze scoreboard.\n");
-            }
-        }
-        else if (cmd == "SCROLL") {
-            Scroll();
-        }
-        else if (cmd == "QUERY_RANKING") {
-            std::string team_name;
-            std::cin >> team_name;
-            QueryRanking(team_name);
-        }
-        else if (cmd == "QUERY_SUBMISSION") {
-            std::string none, team_name, submit_status, problem_name;
-            std::cin >> team_name >> none >> problem_name >> none >> submit_status;
-            char problem = problem_name.back();
-            if (problem_name[problem_name.size()-2]=='L') {
-                problem = 'A' - 1;
-            }
-            int status;
-            switch (submit_status[7]) {
-                case 'A':
-                    if (submit_status[8]=='L') {
-                        status = -1;
+        switch (cmd[1]) {
+            case 'D':
+                std::cin >> team_name;
+                AddTeam(team_name);
+                break;
+            case 'T':
+                std::cin >> none >> duration_time >> none >> count;
+                Start(duration_time, count);
+                break;
+            case 'U':
+                if (cmd == "SUBMIT") {
+                    char problem_name;
+                    std::string none, team_name, submit_status;
+                    int time;
+                    std::cin >> problem_name >> none >> team_name >> none >> submit_status >> none >> time;
+                    int status;
+                    switch (submit_status[0]) {
+                        case 'A':
+                            status = 0;
+                            break;
+                        case 'W':
+                            status = 1;
+                            break;
+                        case 'T':
+                            status = 2;
+                            break;
+                        default:
+                            status = 3;
+                            break;
                     }
-                    else {
-                        status = 0;
+                    Submit(problem_name, team_name, status, time);
+                }
+                else if (cmd == "QUERY_RANKING") {
+                    std::string team_name;
+                    std::cin >> team_name;
+                    QueryRanking(team_name);
+                }
+                else if (cmd == "QUERY_SUBMISSION") {
+                    std::string none, team_name, submit_status, problem_name;
+                    std::cin >> team_name >> none >> problem_name >> none >> submit_status;
+                    char problem = problem_name.back();
+                    if (problem_name[problem_name.size()-2]=='L') {
+                        problem = 'A' - 1;
                     }
-                    break;
-                case 'W':
-                    status = 1;
-                    break;
-                case 'T':
-                    status = 2;
-                    break;
-                default:
-                    status = 3;
-                    break;
-            }
-            QuerySubmission(team_name, problem, status);
-        }
-        else if (cmd == "END") {
-            printf("[Info]Competition ends.\n");
-            return 0;
-        }
-        else if (debug) {
-            std::cerr << cmd;
+                    int status;
+                    switch (submit_status[7]) {
+                        case 'A':
+                            if (submit_status[8]=='L') {
+                                status = -1;
+                            }
+                            else {
+                                status = 0;
+                            }
+                            break;
+                        case 'W':
+                            status = 1;
+                            break;
+                        case 'T':
+                            status = 2;
+                            break;
+                        default:
+                            status = 3;
+                            break;
+                    }
+                    QuerySubmission(team_name, problem, status);
+                }
+                break;
+            case 'L':
+                Flush();
+                break;
+            case 'R':
+                if (global_freeze) {
+                    printf("[Error]Freeze failed: scoreboard has been frozen.\n");
+                }
+                else {
+                    global_freeze = true;
+                    printf("[Info]Freeze scoreboard.\n");
+                }
+                break;
+            case 'C':
+                Scroll();
+                break;
+            case 'N':
+                printf("[Info]Competition ends.\n");
+                return 0;
         }
     }
 }
