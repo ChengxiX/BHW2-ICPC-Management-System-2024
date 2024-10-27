@@ -4,6 +4,7 @@
 #include <string>
 #include <unordered_map>
 #include <vector>
+#include <algorithm>
 #pragma GCC optimize(3)
 
 const bool debug = true;
@@ -51,7 +52,6 @@ struct cmp {
 
 std::unordered_map<std::string, int> NameToTeam;
 std::vector<std::vector<Problem>> Scores;
-std::set<int, cmp> RealSequence;
 std::vector<int> SeqToTeam;
 bool started = false;
 bool global_freeze = false;
@@ -70,7 +70,7 @@ void AddTeam(const std::string &team_name) {
     int team_id = NameToTeam.size();
     NameToTeam.insert({team_name, team_id});
     Teams.push_back({team_name});
-    RealSequence.insert(team_id);
+    SeqToTeam.push_back(team_id);
     printf("[Info]Add successfully.\n");
 }
 
@@ -83,10 +83,9 @@ void Start(const int duration_time, const int count) {
     problem_count = count;
     Scores.resize(Teams.size(), std::vector<Problem>(problem_count));
     SeqToTeam.resize(Teams.size());
-    int i = 0;
-    for (auto it = RealSequence.begin(); it != RealSequence.end(); it++, i++) {
-        Teams[*it].seq = i;
-        SeqToTeam[i] = *it;
+    std::sort(SeqToTeam.begin(), SeqToTeam.end(), cmp());
+    for (int i = 0; i < Teams.size(); i++) {
+        Teams[SeqToTeam[i]].seq = i;
     }
     started = true;
     printf("[Info]Competition starts.\n");
@@ -106,10 +105,8 @@ void Submit(const char problem_name, const std::string &team_name, const int sub
                 Scores[team_id][problem_id].freezed++;
             }
             if (Scores[team_id][problem_id].ac_time == -1 && !global_freeze) {
-                RealSequence.erase(team_id);
                 Teams[team_id].passed++;
                 Teams[team_id].penalty += time + Scores[team_id][problem_id].failed_b4_ac * 20;
-                RealSequence.insert(team_id);
             }
             if (Scores[team_id][problem_id].first_ac_time == -1) {
                 Scores[team_id][problem_id].first_ac_time = time;
@@ -164,10 +161,9 @@ void Submit(const char problem_name, const std::string &team_name, const int sub
 }
 
 void Flush(bool print = true) {
-    int i = 0;
-    for (auto it = RealSequence.begin(); it != RealSequence.end(); it++, i++) {
-        Teams[*it].seq = i;
-        SeqToTeam[i] = *it;
+    std::sort(SeqToTeam.begin(), SeqToTeam.end(), cmp());
+    for (int i = 0; i < Teams.size(); i++) {
+        Teams[SeqToTeam[i]].seq = i;
     }
     if (print) {
         printf("[Info]Flush scoreboard.\n");
@@ -181,6 +177,7 @@ void Scroll() {
     }
     printf("[Info]Scroll scoreboard.\n");
     Flush(false);
+    std::set<int, cmp> RealSequence;
     for (int i = 0; i < Teams.size(); i++) {
         printf("%s %d %d %d", Teams[SeqToTeam[i]].name.c_str(), i+1, Teams[SeqToTeam[i]].passed, Teams[SeqToTeam[i]].penalty);
         for (int j = 0; j < problem_count; j++) {
@@ -212,6 +209,7 @@ void Scroll() {
             }
         }
         printf("\n");
+        RealSequence.insert(RealSequence.end(), SeqToTeam[i]);
     }
     bool exit = false;
     bool break_twice = false;
@@ -225,7 +223,8 @@ void Scroll() {
                         Scores[t_id][j].freezed = 0;
                         Scores[t_id][j].failed_b4_freezed = 0;
                         int after_id = *s_it.base();
-                        RealSequence.erase((++s_it).base());
+                        auto r = RealSequence.erase((++s_it).base());
+
                         Teams[t_id].passed++;
                         Teams[t_id].penalty += Scores[t_id][j].first_ac_time + Scores[t_id][j].failed_b4_ac * 20;
                         auto res = RealSequence.insert(t_id);
