@@ -243,16 +243,28 @@ void Scroll() {
                         auto t_id = *s_it;
                         Scores[t_id][j].freezed = 0;
                         Scores[t_id][j].failed_b4_freezed = 0;
-                        int after_id = *s_it.base();
+                        int after_id;
+                        if (s_it.base()==RealSequence.end()) {
+                            after_id = -1;
+                        }
+                        else {
+                            after_id = *s_it.base();
+                        }
                         auto r = RealSequence.erase((++s_it).base());
 
                         Teams[t_id].passed++;
                         Teams[t_id].penalty += Scores[t_id][j].first_ac_time + Scores[t_id][j].failed_b4_ac * 20;
-                        auto res = RealSequence.insert(t_id);
-                        auto it = res.first; // SUS!
-                        it++;
-                        if (*it != after_id){
-                            printf("%s %s %d %d\n", Teams[t_id].name.c_str(), Teams[*it].name.c_str(), Teams[*res.first].passed, Teams[*res.first].penalty);
+                        auto replaced = RealSequence.upper_bound(t_id);
+                        int replaced_id;
+                        if (replaced == RealSequence.end()) {
+                            replaced_id = -1;
+                        }
+                        else {
+                            replaced_id = *replaced;
+                        }
+                        auto res = RealSequence.insert(replaced, t_id);
+                        if (replaced_id != after_id) { 
+                            printf("%s %s %d %d\n", Teams[t_id].name.c_str(), Teams[replaced_id].name.c_str(), Teams[t_id].passed, Teams[t_id].penalty);
                         }
                         exit = false;
                         break_twice =true;
