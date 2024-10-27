@@ -252,7 +252,7 @@ void Scroll() {
                         auto it = res.first; // SUS!
                         it++;
                         if (*it != after_id){
-                            printf("%s %s %d %d\n", Teams[*res.first].name.c_str(), Teams[*it].name.c_str(), Teams[*res.first].passed, Teams[*res.first].penalty);
+                            printf("%s %s %d %d\n", Teams[t_id].name.c_str(), Teams[*it].name.c_str(), Teams[*res.first].passed, Teams[*res.first].penalty);
                         }
                         exit = false;
                         break_twice =true;
