@@ -165,6 +165,8 @@ sudo chmod 0700 /run/user/1000/
 export $(dbus-launch)
 ```
 
+补充：如果搞不定KDE的KCachegrind可以考虑在Windows上运行Qt版本的Kcachegrind，构建好的在[QCachegrind](https://sourceforge.net/projects/qcachegrindwin/)可直接下载。
+
 #### 使用方式
 
 假设你的代码相对路径为 `code.cpp` ，输入文件为 `data/1.in` ，输出到文件 `.out` 。使用时，首先开启调试模式编译你的代码：
