@@ -42,14 +42,16 @@ struct cmp {
         if (a == b) {
             return false;
         }
-        if (Teams[a].passed == Teams[b].passed) {
-            if (Teams[a].passed == 0) {
-                return Teams[a].name.compare(Teams[b].name) < 0;
+        auto &a_team = Teams[a];
+        auto &b_team = Teams[b];
+        if (a_team.passed == b_team.passed) {
+            if (a_team.passed == 0) {
+                return a_team.name.compare(b_team.name) < 0;
             }
-            if (Teams[a].penalty == Teams[b].penalty) {
+            if (a_team.penalty == b_team.penalty) {
                 std::vector<int> a_time, b_time;
-                a_time.reserve(Teams[a].passed);
-                b_time.reserve(Teams[b].passed);
+                a_time.reserve(a_team.passed);
+                b_time.reserve(b_team.passed);
                 int a_max = -1, b_max = -1;
                 for (int i = 0; i < problem_count; i++) {
                     if (Scores[a][i].first_ac_time != -1 && Scores[a][i].freezed == 0) {
@@ -70,16 +72,16 @@ struct cmp {
                 }
                 std::sort(a_time.begin(), a_time.end());
                 std::sort(b_time.begin(), b_time.end());
-                for (int i = Teams[a].passed-2; i >= 0; i--) {
+                for (int i = a_team.passed-2; i >= 0; i--) {
                     if (a_time[i] != b_time[i]) {
                         return a_time[i] < b_time[i];
                     }
                 }
-                return Teams[a].name.compare(Teams[b].name) < 0;
+                return a_team.name.compare(b_team.name) < 0;
             }
-            return Teams[a].penalty < Teams[b].penalty;
+            return a_team.penalty < b_team.penalty;
         }
-        return Teams[a].passed > Teams[b].passed;
+        return a_team.passed > b_team.passed;
     }
 };
 
