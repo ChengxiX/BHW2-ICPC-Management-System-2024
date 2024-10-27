@@ -50,17 +50,27 @@ struct cmp {
                 std::vector<int> a_time, b_time;
                 a_time.reserve(Teams[a].passed);
                 b_time.reserve(Teams[b].passed);
+                int a_max = -1, b_max = -1;
                 for (int i = 0; i < problem_count; i++) {
                     if (Scores[a][i].first_ac_time != -1 && Scores[a][i].freezed == 0) {
                         a_time.push_back(Scores[a][i].first_ac_time);
+                        if (Scores[a][i].first_ac_time > a_max) {
+                            a_max = Scores[a][i].first_ac_time;
+                        }
                     }
                     if (Scores[b][i].first_ac_time != -1 && Scores[b][i].freezed == 0) {
                         b_time.push_back(Scores[b][i].first_ac_time);
+                        if (Scores[b][i].first_ac_time > b_max) {
+                            b_max = Scores[b][i].first_ac_time;
+                        }
                     }
+                }
+                if (a_max != b_max) {
+                    return a_max < b_max;
                 }
                 std::sort(a_time.begin(), a_time.end());
                 std::sort(b_time.begin(), b_time.end());
-                for (int i = Teams[a].passed-1; i >= 0; i--) {
+                for (int i = Teams[a].passed-2; i >= 0; i--) {
                     if (a_time[i] != b_time[i]) {
                         return a_time[i] < b_time[i];
                     }
@@ -70,6 +80,12 @@ struct cmp {
             return Teams[a].penalty < Teams[b].penalty;
         }
         return Teams[a].passed > Teams[b].passed;
+    }
+};
+
+struct dic_cmp {
+    bool operator() (const int a, const int b) const {
+        return Teams[a].name.compare(Teams[b].name) < 0;
     }
 };
 
@@ -84,12 +100,12 @@ void AddTeam(const std::string &team_name) {
         printf("[Error]Add failed: competition has started.\n");
         return;
     }
-    if (NameToTeam.count(team_name) != 0) {
+    int team_id = Teams.size();
+    auto res = NameToTeam.insert({team_name, team_id});
+    if (!res.second) {
         printf("[Error]Add failed: duplicated team name.\n");
         return;
     }
-    int team_id = NameToTeam.size();
-    NameToTeam.insert({team_name, team_id});
     Teams.push_back({team_name});
     SeqToTeam.push_back(team_id);
     printf("[Info]Add successfully.\n");
@@ -103,8 +119,7 @@ void Start(const int duration_time, const int count) {
     end_time = duration_time;
     problem_count = count;
     Scores.resize(Teams.size(), std::vector<Problem>(problem_count));
-    SeqToTeam.resize(Teams.size());
-    std::sort(SeqToTeam.begin(), SeqToTeam.end(), cmp());
+    std::sort(SeqToTeam.begin(), SeqToTeam.end(), dic_cmp());
     for (int i = 0; i < Teams.size(); i++) {
         Teams[SeqToTeam[i]].seq = i;
     }
@@ -181,14 +196,12 @@ void Submit(const char problem_name, const std::string &team_name, const int sub
     }
 }
 
-void Flush(bool print = true) {
+void Flush() {
     std::sort(SeqToTeam.begin(), SeqToTeam.end(), cmp());
     for (int i = 0; i < Teams.size(); i++) {
         Teams[SeqToTeam[i]].seq = i;
     }
-    if (print) {
-        printf("[Info]Flush scoreboard.\n");
-    }
+    printf("[Info]Flush scoreboard.\n");
 }
 
 void Scroll() {
@@ -197,7 +210,10 @@ void Scroll() {
         return;
     }
     printf("[Info]Scroll scoreboard.\n");
-    Flush(false);
+    std::sort(SeqToTeam.begin(), SeqToTeam.end(), cmp());
+    for (int i = 0; i < Teams.size(); i++) {
+        Teams[SeqToTeam[i]].seq = i;
+    }
     std::set<int, cmp> RealSequence;
     for (int i = 0; i < Teams.size(); i++) {
         printf("%s %d %d %d", Teams[SeqToTeam[i]].name.c_str(), i+1, Teams[SeqToTeam[i]].passed, Teams[SeqToTeam[i]].penalty);
@@ -237,10 +253,10 @@ void Scroll() {
     while (!exit) {
         exit = true;
         for (auto s_it = RealSequence.rbegin(); s_it != RealSequence.rend(); s_it++) {
+            int t_id = *s_it;
             for (int j = 0; j < problem_count; j++) {
-                if (Scores[*s_it][j].freezed != 0) {
-                    if (Scores[*s_it][j].ac_time != -1) {
-                        auto t_id = *s_it;
+                if (Scores[t_id][j].freezed != 0) {
+                    if (Scores[t_id][j].ac_time != -1) {
                         Scores[t_id][j].freezed = 0;
                         Scores[t_id][j].failed_b4_freezed = 0;
                         int after_id;
