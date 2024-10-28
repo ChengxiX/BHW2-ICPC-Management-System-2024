@@ -4,8 +4,7 @@
 #include <string>
 #include <unordered_map>
 #include <vector>
-#include <algorithm>
-#pragma GCC optimize(3)
+//#pragma GCC optimize(3)
 
 struct Problem {
     int freezed = 0;
@@ -34,6 +33,7 @@ struct Team {
 std::vector<Team> Teams;
 int problem_count;
 std::vector<std::vector<Problem>> Scores;
+std::vector<std::vector<int>> LatestAc;
 
 struct cmp {
     bool operator() (const int a, const int b) const {
@@ -47,34 +47,11 @@ struct cmp {
                 return a_team.name.compare(b_team.name) < 0;
             }
             if (a_team.penalty == b_team.penalty) {
-                std::vector<int> a_time, b_time;
-                a_time.reserve(a_team.passed);
-                b_time.reserve(b_team.passed);
-                int a_max = -1, b_max = -1;
-                for (int i = 0; i < problem_count; i++) {
-                    if (Scores[a][i].first_ac_time != -1 && Scores[a][i].freezed == 0) {
-                        a_time.push_back(Scores[a][i].first_ac_time);
-                        if (Scores[a][i].first_ac_time > a_max) {
-                            a_max = Scores[a][i].first_ac_time;
-                        }
-                    }
-                    if (Scores[b][i].first_ac_time != -1 && Scores[b][i].freezed == 0) {
-                        b_time.push_back(Scores[b][i].first_ac_time);
-                        if (Scores[b][i].first_ac_time > b_max) {
-                            b_max = Scores[b][i].first_ac_time;
-                        }
-                    }
-                }
-                if (a_max != b_max) {
-                    return a_max < b_max;
-                }
-                if (a_team.passed>1) {
-                    std::sort(a_time.begin(), a_time.end());
-                    std::sort(b_time.begin(), b_time.end());
-                    for (int i = a_team.passed-2; i >= 0; i--) {
-                        if (a_time[i] != b_time[i]) {
-                            return a_time[i] < b_time[i];
-                        }
+                auto &l_a = LatestAc[a];
+                auto &l_b = LatestAc[b];
+                for (int i = a_team.passed - 1; i >= 0; i--) {
+                    if (l_a[i] != l_b[i]) {
+                        return l_a[i] < l_b[i];
                     }
                 }
                 return a_team.name.compare(b_team.name) < 0;
@@ -117,6 +94,7 @@ void Start(const int duration_time, const int count) {
     problem_count = count;
     Scores.resize(Teams.size(), std::vector<Problem>(problem_count));
     SeqToTeam.resize(Teams.size());
+    LatestAc.resize(Teams.size());
     int i = 0;
     for (auto it = RealSequence.begin(); i < Teams.size(); i++, it++) {
         int id = *it;
@@ -147,6 +125,7 @@ void Submit(const char problem_name, const std::string &team_name, const int sub
                     p_struct.first_ac_time = time;
                 }
                 Teams[team_id].passed++;
+                LatestAc[team_id].push_back(time);
                 Teams[team_id].penalty += time + p_struct.failed_b4_ac * 20;
                 RealSequence.insert(team_id);
             }
@@ -266,13 +245,26 @@ void Scroll() {
             int t_id = *s_it;
             auto &score = Scores[t_id];
             for (int j = 0; j < problem_count; j++) {
-                if (score[j].freezed != 0) {
-                    if (score[j].ac_time != -1) {
-                        score[j].freezed = 0;
-                        score[j].failed_b4_freezed = 0;
+                auto &sj = score[j];
+                if (sj.freezed != 0) {
+                    if (sj.ac_time != -1) {
+                        sj.freezed = 0;
+                        sj.failed_b4_freezed = 0;
                         auto r = RealSequence.erase(s_it);
                         Teams[t_id].passed++;
-                        Teams[t_id].penalty += score[j].first_ac_time + score[j].failed_b4_ac * 20;
+                        Teams[t_id].penalty += sj.first_ac_time + sj.failed_b4_ac * 20;
+                        auto &l_ac = LatestAc[t_id];
+                        l_ac.emplace_back();
+                        int k = l_ac.size() - 2;
+                        for (; k >= 0; k--) {
+                            if (l_ac[k] > sj.first_ac_time) {
+                                l_ac[k+1] = l_ac[k];
+                            }
+                            else {
+                                break;
+                            }
+                        }
+                        l_ac[k+1] = sj.first_ac_time;
                         auto replaced = RealSequence.upper_bound(t_id);
                         int replaced_id;
                         if (replaced == RealSequence.end()) {
@@ -290,8 +282,8 @@ void Scroll() {
                         break;
                     }
                     else {
-                        score[j].freezed = 0;
-                        score[j].failed_b4_freezed = score[j].failed_b4_ac;
+                        sj.freezed = 0;
+                        sj.failed_b4_freezed = sj.failed_b4_ac;
                     }
                 }
             }
