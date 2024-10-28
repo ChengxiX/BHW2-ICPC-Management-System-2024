@@ -5,7 +5,7 @@
 #include <unordered_map>
 #include <vector>
 #include <algorithm>
-#pragma GCC optimize(3)
+//#pragma GCC optimize(3)
 
 const bool debug = true;
 
@@ -39,6 +39,9 @@ std::vector<std::vector<Problem>> Scores;
 
 struct cmp {
     bool operator() (const int a, const int b) const {
+        if ((a==7&&b==13)||(a==13&&b==7)) {
+            int x = 1;
+        }
         if (a == b) {
             return false;
         }
@@ -70,11 +73,13 @@ struct cmp {
                 if (a_max != b_max) {
                     return a_max < b_max;
                 }
-                std::sort(a_time.begin(), a_time.end());
-                std::sort(b_time.begin(), b_time.end());
-                for (int i = a_team.passed-2; i >= 0; i--) {
-                    if (a_time[i] != b_time[i]) {
-                        return a_time[i] < b_time[i];
+                if (a_team.passed>1) {
+                    std::sort(a_time.begin(), a_time.end());
+                    std::sort(b_time.begin(), b_time.end());
+                    for (int i = a_team.passed-2; i >= 0; i--) {
+                        if (a_time[i] != b_time[i]) {
+                            return a_time[i] < b_time[i];
+                        }
                     }
                 }
                 return a_team.name.compare(b_team.name) < 0;
@@ -85,17 +90,12 @@ struct cmp {
     }
 };
 
-struct dic_cmp {
-    bool operator() (const int a, const int b) const {
-        return Teams[a].name.compare(Teams[b].name) < 0;
-    }
-};
-
 std::unordered_map<std::string, int> NameToTeam;
 std::vector<int> SeqToTeam;
 bool started = false;
 bool global_freeze = false;
 int end_time;
+std::set<int, cmp> RealSequence;
 
 void AddTeam(const std::string &team_name) {
     if (started) {
@@ -109,7 +109,7 @@ void AddTeam(const std::string &team_name) {
         return;
     }
     Teams.push_back({team_name});
-    SeqToTeam.push_back(team_id);
+    RealSequence.insert(team_id);
     printf("[Info]Add successfully.\n");
 }
 
@@ -121,9 +121,12 @@ void Start(const int duration_time, const int count) {
     end_time = duration_time;
     problem_count = count;
     Scores.resize(Teams.size(), std::vector<Problem>(problem_count));
-    std::sort(SeqToTeam.begin(), SeqToTeam.end(), dic_cmp());
-    for (int i = 0; i < Teams.size(); i++) {
-        Teams[SeqToTeam[i]].seq = i;
+    SeqToTeam.resize(Teams.size());
+    int i = 0;
+    for (auto it = RealSequence.begin(); i < Teams.size(); i++, it++) {
+        int id = *it;
+        Teams[id].seq = i;
+        SeqToTeam[i] = id;
     }
     started = true;
     printf("[Info]Competition starts.\n");
@@ -144,8 +147,13 @@ void Submit(const char problem_name, const std::string &team_name, const int sub
                 p_struct.freezed++;
             }
             if (p_struct.ac_time == -1 && !global_freeze) {
+                RealSequence.erase(team_id);
+                if (p_struct.first_ac_time == -1) {
+                    p_struct.first_ac_time = time;
+                }
                 Teams[team_id].passed++;
                 Teams[team_id].penalty += time + p_struct.failed_b4_ac * 20;
+                RealSequence.insert(team_id);
             }
             if (p_struct.first_ac_time == -1) {
                 p_struct.first_ac_time = time;
@@ -200,9 +208,11 @@ void Submit(const char problem_name, const std::string &team_name, const int sub
 }
 
 void Flush() {
-    std::sort(SeqToTeam.begin(), SeqToTeam.end(), cmp());
-    for (int i = 0; i < Teams.size(); i++) {
-        Teams[SeqToTeam[i]].seq = i;
+    int i = 0;
+    for (auto it = RealSequence.begin(); i < Teams.size(); i++, it++) {
+        int id = *it;
+        Teams[id].seq = i;
+        SeqToTeam[i] = id;
     }
     printf("[Info]Flush scoreboard.\n");
 }
@@ -213,43 +223,41 @@ void Scroll() {
         return;
     }
     printf("[Info]Scroll scoreboard.\n");
-    std::sort(SeqToTeam.begin(), SeqToTeam.end(), cmp());
-    for (int i = 0; i < Teams.size(); i++) {
-        Teams[SeqToTeam[i]].seq = i;
-    }
-    std::set<int, cmp> RealSequence;
-    for (int i = 0; i < Teams.size(); i++) {
-        printf("%s %d %d %d", Teams[SeqToTeam[i]].name.c_str(), i+1, Teams[SeqToTeam[i]].passed, Teams[SeqToTeam[i]].penalty);
+    int i = 0;
+    for (auto it = RealSequence.begin(); i < Teams.size(); i++, it++) {
+        int id = *it;
+        Teams[id].seq = i;
+        SeqToTeam[i] = id;
+        printf("%s %d %d %d", Teams[id].name.c_str(), i+1, Teams[id].passed, Teams[id].penalty);
         for (int j = 0; j < problem_count; j++) {
-            if (Scores[SeqToTeam[i]][j].freezed == 0) {
-                if (Scores[SeqToTeam[i]][j].ac_time != -1) {
-                    if (Scores[SeqToTeam[i]][j].failed_b4_ac == 0) {
+            if (Scores[id][j].freezed == 0) {
+                if (Scores[id][j].ac_time != -1) {
+                    if (Scores[id][j].failed_b4_ac == 0) {
                         printf(" +");
                     }
                     else {
-                        printf(" +%d", Scores[SeqToTeam[i]][j].failed_b4_ac);
+                        printf(" +%d", Scores[id][j].failed_b4_ac);
                     }
                 }
                 else {
-                    if (Scores[SeqToTeam[i]][j].failed_b4_ac == 0) {
+                    if (Scores[id][j].failed_b4_ac == 0) {
                         printf(" .");
                     }
                     else {
-                        printf(" -%d", Scores[SeqToTeam[i]][j].failed_b4_ac);
+                        printf(" -%d", Scores[id][j].failed_b4_ac);
                     }
                 }
             }
             else {
-                if (Scores[SeqToTeam[i]][j].failed_b4_freezed == 0) {
-                    printf(" 0/%d", Scores[SeqToTeam[i]][j].freezed);
+                if (Scores[id][j].failed_b4_freezed == 0) {
+                    printf(" 0/%d", Scores[id][j].freezed);
                 }
                 else {
-                    printf(" -%d/%d", Scores[SeqToTeam[i]][j].failed_b4_freezed, Scores[SeqToTeam[i]][j].freezed);
+                    printf(" -%d/%d", Scores[id][j].failed_b4_freezed, Scores[id][j].freezed);
                 }
             }
         }
         printf("\n");
-        RealSequence.insert(RealSequence.end(), SeqToTeam[i]);
     }
     bool exit = false;
     bool break_twice = false;
@@ -296,12 +304,12 @@ void Scroll() {
             last_id = t_id;
         }
     }
-    int i = 0;
+    i = 0;
     for (auto it = RealSequence.begin(); i < Teams.size(); i++, it++) {
         int t_id = *it;
         Teams[t_id].seq = i;
         SeqToTeam[i] = t_id;
-        printf("%s %d %d %d", Teams[t_id].name.c_str(), i+1, Teams[t_id].passed, Teams[SeqToTeam[i]].penalty);
+        printf("%s %d %d %d", Teams[t_id].name.c_str(), i+1, Teams[t_id].passed, Teams[t_id].penalty);
         for (int j = 0; j < problem_count; j++) {
             if (Scores[t_id][j].ac_time != -1) {
                 if (Scores[t_id][j].failed_b4_ac == 0) {
