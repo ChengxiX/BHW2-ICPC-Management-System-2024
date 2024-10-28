@@ -263,7 +263,8 @@ void Scroll() {
     while (!exit) {
         exit = true;
         int last_id = -1;
-        for (auto s_it = RealSequence.end(); s_it != RealSequence.begin();) {
+        auto begin = RealSequence.begin();
+        for (auto s_it = RealSequence.end(); s_it != begin;) {
             s_it--;
             int t_id = *s_it;
             auto &score = Scores[t_id];
