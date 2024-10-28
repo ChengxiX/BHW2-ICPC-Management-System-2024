@@ -5,9 +5,7 @@
 #include <unordered_map>
 #include <vector>
 #include <algorithm>
-//#pragma GCC optimize(3)
-
-const bool debug = true;
+#pragma GCC optimize(3)
 
 struct Problem {
     int freezed = 0;
@@ -229,31 +227,32 @@ void Scroll() {
         Teams[id].seq = i;
         SeqToTeam[i] = id;
         printf("%s %d %d %d", Teams[id].name.c_str(), i+1, Teams[id].passed, Teams[id].penalty);
+        auto &score = Scores[id];
         for (int j = 0; j < problem_count; j++) {
-            if (Scores[id][j].freezed == 0) {
-                if (Scores[id][j].ac_time != -1) {
-                    if (Scores[id][j].failed_b4_ac == 0) {
+            if (score[j].freezed == 0) {
+                if (score[j].ac_time != -1) {
+                    if (score[j].failed_b4_ac == 0) {
                         printf(" +");
                     }
                     else {
-                        printf(" +%d", Scores[id][j].failed_b4_ac);
+                        printf(" +%d", score[j].failed_b4_ac);
                     }
                 }
                 else {
-                    if (Scores[id][j].failed_b4_ac == 0) {
+                    if (score[j].failed_b4_ac == 0) {
                         printf(" .");
                     }
                     else {
-                        printf(" -%d", Scores[id][j].failed_b4_ac);
+                        printf(" -%d", score[j].failed_b4_ac);
                     }
                 }
             }
             else {
-                if (Scores[id][j].failed_b4_freezed == 0) {
-                    printf(" 0/%d", Scores[id][j].freezed);
+                if (score[j].failed_b4_freezed == 0) {
+                    printf(" 0/%d", score[j].freezed);
                 }
                 else {
-                    printf(" -%d/%d", Scores[id][j].failed_b4_freezed, Scores[id][j].freezed);
+                    printf(" -%d/%d", score[j].failed_b4_freezed, score[j].freezed);
                 }
             }
         }
@@ -267,14 +266,15 @@ void Scroll() {
         for (auto s_it = RealSequence.end(); s_it != RealSequence.begin();) {
             s_it--;
             int t_id = *s_it;
+            auto &score = Scores[t_id];
             for (int j = 0; j < problem_count; j++) {
-                if (Scores[t_id][j].freezed != 0) {
-                    if (Scores[t_id][j].ac_time != -1) {
-                        Scores[t_id][j].freezed = 0;
-                        Scores[t_id][j].failed_b4_freezed = 0;
+                if (score[j].freezed != 0) {
+                    if (score[j].ac_time != -1) {
+                        score[j].freezed = 0;
+                        score[j].failed_b4_freezed = 0;
                         auto r = RealSequence.erase(s_it);
                         Teams[t_id].passed++;
-                        Teams[t_id].penalty += Scores[t_id][j].first_ac_time + Scores[t_id][j].failed_b4_ac * 20;
+                        Teams[t_id].penalty += score[j].first_ac_time + score[j].failed_b4_ac * 20;
                         auto replaced = RealSequence.upper_bound(t_id);
                         int replaced_id;
                         if (replaced == RealSequence.end()) {
@@ -292,8 +292,8 @@ void Scroll() {
                         break;
                     }
                     else {
-                        Scores[*s_it][j].freezed = 0;
-                        Scores[*s_it][j].failed_b4_freezed = Scores[*s_it][j].failed_b4_ac;
+                        score[j].freezed = 0;
+                        score[j].failed_b4_freezed = score[j].failed_b4_ac;
                     }
                 }
             }
@@ -309,22 +309,24 @@ void Scroll() {
         int t_id = *it;
         Teams[t_id].seq = i;
         SeqToTeam[i] = t_id;
+        auto &score = Scores[t_id];
+
         printf("%s %d %d %d", Teams[t_id].name.c_str(), i+1, Teams[t_id].passed, Teams[t_id].penalty);
         for (int j = 0; j < problem_count; j++) {
-            if (Scores[t_id][j].ac_time != -1) {
-                if (Scores[t_id][j].failed_b4_ac == 0) {
+            if (score[j].ac_time != -1) {
+                if (score[j].failed_b4_ac == 0) {
                     printf(" +");
                 }
                 else {
-                    printf(" +%d", Scores[t_id][j].failed_b4_ac);
+                    printf(" +%d", score[j].failed_b4_ac);
                 }
             }
             else {
-                if (Scores[t_id][j].failed_b4_ac == 0) {
+                if (score[j].failed_b4_ac == 0) {
                     printf(" .");
                 }
                 else {
-                    printf(" -%d", Scores[t_id][j].failed_b4_ac);
+                    printf(" -%d", score[j].failed_b4_ac);
                 }
             }
         }
@@ -355,7 +357,7 @@ void QuerySubmission(const std::string &team_name, const char problem_name, cons
     printf("[Info]Complete query submission.\n");
     int question_id = QuestionNameToIndex(problem_name);
     int t_id = t_it->second;
-    const auto &score = Scores[t_id];
+    auto &score = Scores[t_id];
     int latest_time = 0;
     int latest_problem = question_id;
     int latest_status = status;
@@ -468,6 +470,7 @@ void QuerySubmission(const std::string &team_name, const char problem_name, cons
 
 int main() {
     std::ios::sync_with_stdio(false);
+    std::cin.tie(nullptr);
     std::string cmd;
     std::string none;
     std::string team_name;
