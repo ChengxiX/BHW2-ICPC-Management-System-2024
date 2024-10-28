@@ -37,9 +37,6 @@ std::vector<std::vector<Problem>> Scores;
 
 struct cmp {
     bool operator() (const int a, const int b) const {
-        if ((a==7&&b==13)||(a==13&&b==7)) {
-            int x = 1;
-        }
         if (a == b) {
             return false;
         }
