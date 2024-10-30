@@ -4,7 +4,7 @@
 #include <string>
 #include <unordered_map>
 #include <vector>
-//#pragma GCC optimize(3)
+#pragma GCC optimize(3)
 
 struct Problem {
     int freezed = 0;
@@ -71,23 +71,23 @@ std::set<int, cmp> RealSequence;
 
 void AddTeam(const std::string &team_name) {
     if (started) {
-        printf("[Error]Add failed: competition has started.\n");
+        std::cout << "[Error]Add failed: competition has started.\n";
         return;
     }
     int team_id = Teams.size();
     auto res = NameToTeam.insert({team_name, team_id});
     if (!res.second) {
-        printf("[Error]Add failed: duplicated team name.\n");
+        std::cout << "[Error]Add failed: duplicated team name.\n";
         return;
     }
     Teams.push_back({team_name});
     RealSequence.insert(team_id);
-    printf("[Info]Add successfully.\n");
+    std::cout << "[Info]Add successfully.\n";
 }
 
 void Start(const int duration_time, const int count) {
     if (started) {
-        printf("[Error]Start failed: competition has started.\n");
+        std::cout << "[Error]Start failed: competition has started.\n";
         return;
     }
     end_time = duration_time;
@@ -102,7 +102,7 @@ void Start(const int duration_time, const int count) {
         SeqToTeam[i] = id;
     }
     started = true;
-    printf("[Info]Competition starts.\n");
+    std::cout << "[Info]Competition starts.\n";
 }
 
 inline int QuestionNameToIndex(const char problem_name) {
@@ -188,51 +188,51 @@ void Flush() {
         Teams[id].seq = i;
         SeqToTeam[i] = id;
     }
-    printf("[Info]Flush scoreboard.\n");
+    std::cout << "[Info]Flush scoreboard.\n";
 }
 
 void Scroll() {
     if (!global_freeze) {
-        printf("[Error]Scroll failed: scoreboard has not been frozen.\n");
+        std::cout << "[Error]Scroll failed: scoreboard has not been frozen.\n";
         return;
     }
-    printf("[Info]Scroll scoreboard.\n");
+    std::cout << "[Info]Scroll scoreboard.\n";
     int i = 0;
     for (auto it = RealSequence.begin(); i < Teams.size(); i++, it++) {
         int id = *it;
         Teams[id].seq = i;
         SeqToTeam[i] = id;
-        printf("%s %d %d %d", Teams[id].name.c_str(), i+1, Teams[id].passed, Teams[id].penalty);
+        std::cout << Teams[id].name << " " << i+1 << " " << Teams[id].passed << " " << Teams[id].penalty;
         auto &score = Scores[id];
         for (int j = 0; j < problem_count; j++) {
             if (score[j].freezed == 0) {
                 if (score[j].ac_time != -1) {
                     if (score[j].failed_b4_ac == 0) {
-                        printf(" +");
+                        std::cout << " +";
                     }
                     else {
-                        printf(" +%d", score[j].failed_b4_ac);
+                        std::cout << " +" << score[j].failed_b4_ac;
                     }
                 }
                 else {
                     if (score[j].failed_b4_ac == 0) {
-                        printf(" .");
+                        std::cout << " .";
                     }
                     else {
-                        printf(" -%d", score[j].failed_b4_ac);
+                        std::cout << " -" << score[j].failed_b4_ac;
                     }
                 }
             }
             else {
                 if (score[j].failed_b4_freezed == 0) {
-                    printf(" 0/%d", score[j].freezed);
+                    std::cout << " 0/" << score[j].freezed;
                 }
                 else {
-                    printf(" -%d/%d", score[j].failed_b4_freezed, score[j].freezed);
+                    std::cout << " -" << score[j].failed_b4_freezed << "/" <<  score[j].freezed;
                 }
             }
         }
-        printf("\n");
+        std::cout << "\n";
     }
     bool exit = false;
     bool break_twice = false;
@@ -275,7 +275,7 @@ void Scroll() {
                         }
                         auto res = RealSequence.insert(replaced, t_id);
                         if (replaced_id != last_id) { 
-                            printf("%s %s %d %d\n", Teams[t_id].name.c_str(), Teams[replaced_id].name.c_str(), Teams[t_id].passed, Teams[t_id].penalty);
+                            std::cout << Teams[t_id].name << " " << Teams[replaced_id].name << " " << Teams[t_id].passed << " " << Teams[t_id].penalty << "\n";
                         }
                         exit = false;
                         break_twice =true;
@@ -301,26 +301,26 @@ void Scroll() {
         SeqToTeam[i] = t_id;
         auto &score = Scores[t_id];
 
-        printf("%s %d %d %d", Teams[t_id].name.c_str(), i+1, Teams[t_id].passed, Teams[t_id].penalty);
+        std::cout << Teams[t_id].name << " " << i+1 << " " << Teams[t_id].passed << " " << Teams[t_id].penalty;
         for (int j = 0; j < problem_count; j++) {
             if (score[j].ac_time != -1) {
                 if (score[j].failed_b4_ac == 0) {
-                    printf(" +");
+                    std::cout << " +";
                 }
                 else {
-                    printf(" +%d", score[j].failed_b4_ac);
+                    std::cout << " +" << score[j].failed_b4_ac;
                 }
             }
             else {
                 if (score[j].failed_b4_ac == 0) {
-                    printf(" .");
+                    std::cout << " .";
                 }
                 else {
-                    printf(" -%d", score[j].failed_b4_ac);
+                    std::cout << " -" << score[j].failed_b4_ac;
                 }
             }
         }
-        printf("\n");
+        std::cout << "\n";
     }
     global_freeze = false;
 }
@@ -328,23 +328,23 @@ void Scroll() {
 void QueryRanking(const std::string &team_name) {
     auto t_it = NameToTeam.find(team_name);
     if (t_it == NameToTeam.end()) {
-        printf("[Error]Query ranking failed: cannot find the team.\n");
+        std::cout << "[Error]Query ranking failed: cannot find the team.\n";
         return;
     }
-    printf("[Info]Complete query ranking.\n");
+    std::cout << "[Info]Complete query ranking.\n";
     if (global_freeze) {
-        printf("[Warning]Scoreboard is frozen. The ranking may be inaccurate until it were scrolled.\n");
+        std::cout << "[Warning]Scoreboard is frozen. The ranking may be inaccurate until it were scrolled.\n";
     }
-    printf("%s NOW AT RANKING %d\n", team_name.c_str(), Teams[t_it->second].seq + 1);
+    std::cout <<  team_name << " NOW AT RANKING " << Teams[t_it->second].seq + 1 << "\n";
 }
 
 void QuerySubmission(const std::string &team_name, const char problem_name, const int status) {
     auto t_it = NameToTeam.find(team_name);
     if (t_it == NameToTeam.end()) {
-        printf("[Error]Query submission failed: cannot find the team.\n");
+        std::cout << "[Error]Query submission failed: cannot find the team.\n";
         return;
     }
-    printf("[Info]Complete query submission.\n");
+    std::cout << "[Info]Complete query submission.\n";
     int question_id = QuestionNameToIndex(problem_name);
     int t_id = t_it->second;
     auto &score = Scores[t_id];
@@ -448,11 +448,11 @@ void QuerySubmission(const std::string &team_name, const char problem_name, cons
         }
     }
     if (latest_time == 0) {
-        printf("Cannot find any submission.\n");
+        std::cout << "Cannot find any submission.\n";
     }
     else {
-        printf("%s %c %s %d\n", team_name.c_str(), char(latest_problem + 'A'),
-        latest_status == 0 ? "Accepted" : latest_status == 1 ? "Wrong_Answer" : latest_status == 2 ? "Time_Limit_Exceed" : "Runtime_Error", latest_time);
+        std::cout << team_name << " " << char(latest_problem + 'A') << " " << 
+        (latest_status == 0 ? "Accepted" : latest_status == 1 ? "Wrong_Answer" : latest_status == 2 ? "Time_Limit_Exceed" : "Runtime_Error") << " " << latest_time << "\n";
     }
 }
 
@@ -538,18 +538,18 @@ int main() {
                 break;
             case 'R':
                 if (global_freeze) {
-                    printf("[Error]Freeze failed: scoreboard has been frozen.\n");
+                    std::cout << "[Error]Freeze failed: scoreboard has been frozen.\n";
                 }
                 else {
                     global_freeze = true;
-                    printf("[Info]Freeze scoreboard.\n");
+                    std::cout << "[Info]Freeze scoreboard.\n";
                 }
                 break;
             case 'C':
                 Scroll();
                 break;
             case 'N':
-                printf("[Info]Competition ends.\n");
+                std::cout << "[Info]Competition ends.\n";
                 return 0;
         }
     }
