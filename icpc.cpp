@@ -28,6 +28,7 @@ struct Team {
     int latest_wa = -1;
     int latest_tle = -1;
     int latest_re = -1;
+    int unfreeze_to = 0;
 };
 
 std::vector<Team> Teams;
@@ -202,6 +203,7 @@ void Scroll() {
         int id = *it;
         Teams[id].seq = i;
         SeqToTeam[i] = id;
+        Teams[id].unfreeze_to = 0;
         std::cout << Teams[id].name << " " << i+1 << " " << Teams[id].passed << " " << Teams[id].penalty;
         auto &score = Scores[id];
         for (int j = 0; j < problem_count; j++) {
@@ -244,9 +246,10 @@ void Scroll() {
             s_it--;
             int t_id = *s_it;
             auto &score = Scores[t_id];
-            for (int j = 0; j < problem_count; j++) {
+            for (int j = Teams[t_id].unfreeze_to; j < problem_count; j++) {
                 auto &sj = score[j];
                 if (sj.freezed != 0) {
+                    Teams[t_id].unfreeze_to = j + 1;
                     if (sj.ac_time != -1) {
                         sj.freezed = 0;
                         sj.failed_b4_freezed = 0;
@@ -292,6 +295,7 @@ void Scroll() {
                 break;
             }
             last_id = t_id;
+            Teams[t_id].unfreeze_to = problem_count;
         }
     }
     i = 0;
